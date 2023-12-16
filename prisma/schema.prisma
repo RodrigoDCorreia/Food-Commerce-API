@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Snack {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  snack       String
+  name        String
+  description String
+  price       Int
+  image       String
+  created_at  DateTime?   @default(now())
+  updated_at  DateTime?   @updatedAt
+  orderItems  OrderItem[]
+
+  @@map("snacks")
+}
+
+model Customer {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  fullName     String
+  email        String    @unique
+  mobile       String
+  document     String
+  zipCode      String
+  street       String
+  number       String
+  complement   String
+  neighborhood String
+  city         String
+  state        String
+  created_at   DateTime? @default(now())
+  updated_at   DateTime? @updatedAt
+  orders       Order[]
+
+  @@map("customers")
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELED
+
+  @@map("orderstatuses")
+}
+
+model Order {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  status        OrderStatus @default(PENDING)
+  total         Int
+  transactionId String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  customerId    String      @db.ObjectId
+  orderItems    OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  quantity  Int      @default(0)
+  subTotal  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   String   @db.ObjectId
+  snack     Snack    @relation(fields: [snackId], references: [id])
+  snackId   String   @db.ObjectId
+
+  @@map("orderitems")
+}
